@@ -1,6 +1,0 @@
-{
-  "name": "VIRA-1 Semiconductor Inspection",
-  "description": "VIRA-1 반도체 후공정 정밀 비전 검사 시스템 (YOLO26-seg 기반 픽셀 단위 검출)",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}
