@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>VIRA-1: Semiconductor AI Vision Inspection</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-surface": "#dde4e5",
+                        "primary-fixed-dim": "#2fd9f4",
+                        "surface-container-low": "#161d1e",
+                        "on-primary-fixed-variant": "#004e5a",
+                        "tertiary": "#ffd6a7",
+                        "primary-fixed": "#a2eeff",
+                        "on-tertiary-container": "#704500",
+                        "on-secondary-container": "#00311f",
+                        "on-primary-fixed": "#001f25",
+                        "surface": "#0e1416",
+                        "on-tertiary-fixed": "#2a1700",
+                        "tertiary-fixed-dim": "#ffb95f",
+                        "on-surface-variant": "#bbc9cd",
+                        "on-surface": "#dde4e5",
+                        "secondary": "#4edea3",
+                        "surface-bright": "#343a3c",
+                        "surface-variant": "#2f3638",
+                        "surface-container": "#1a2122",
+                        "on-error": "#690005",
+                        "on-error-container": "#ffdad6",
+                        "error-container": "#93000a",
+                        "on-tertiary": "#472a00",
+                        "secondary-fixed": "#6ffbbe",
+                        "inverse-on-surface": "#2b3233",
+                        "outline": "#859397",
+                        "surface-dim": "#0e1416",
+                        "surface-tint": "#2fd9f4",
+                        "inverse-primary": "#006877",
+                        "primary": "#8aebff",
+                        "tertiary-fixed": "#ffddb8",
+                        "background": "#0B0F14", /* OVERRIDING BASE BACKGROUND PER STYLE GUIDANCE */
+                        "on-primary-container": "#005763",
+                        "surface-container-highest": "#2f3638",
+                        "on-secondary": "#003824",
+                        "on-secondary-fixed-variant": "#005236",
+                        "secondary-fixed-dim": "#4edea3",
+                        "on-background": "#dde4e5",
+                        "on-tertiary-fixed-variant": "#653e00",
+                        "error": "#ffb4ab",
+                        "secondary-container": "#00a572",
+                        "surface-container-high": "#242b2d",
+                        "surface-container-lowest": "#090f11",
+                        "on-secondary-fixed": "#002113",
+                        "on-primary": "#00363e",
+                        "primary-container": "#22d3ee",
+                        "tertiary-container": "#ffb147",
+                        "outline-variant": "#253040" /* OVERRIDING BASE OUTLINE PER STYLE GUIDANCE */
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "grid-unit": "8px",
+                        "gutter": "24px",
+                        "section-gap": "96px",
+                        "card-padding": "24px",
+                        "container-max": "1200px"
+                    },
+                    "fontFamily": {
+                        "data-sm": ["JetBrains Mono"],
+                        "headline-md": ["Hanken Grotesk"],
+                        "display-lg": ["Hanken Grotesk"],
+                        "body-lg": ["Hanken Grotesk"],
+                        "body-md": ["Hanken Grotesk"],
+                        "label-mono": ["JetBrains Mono"],
+                        "headline-sm": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                        "data-sm": ["12px", { "lineHeight": "1.2", "fontWeight": "400" }],
+                        "headline-md": ["32px", { "lineHeight": "1.2", "fontWeight": "600" }],
+                        "display-lg": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-lg": ["18px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "body-md": ["16px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "label-mono": ["14px", { "lineHeight": "1.2", "fontWeight": "500" }],
+                        "headline-sm": ["24px", { "lineHeight": "1.3", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .wafer-grid {
+            background-image: 
+                linear-gradient(to right, #253040 1px, transparent 1px),
+                linear-gradient(to bottom, #253040 1px, transparent 1px);
+            background-size: 32px 32px;
+        }
+        .tech-card {
+            background-color: #141A22;
+            border: 1px solid #253040;
+            transition: all 0.2s ease-in-out;
+        }
+        .tech-card:hover {
+            border-color: rgba(34, 211, 238, 0.5);
+            box-shadow: inset 0 0 20px rgba(34, 211, 238, 0.05);
+        }
+        .polygon-outline {
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+        }
+        .glow-accent {
+            box-shadow: 0 0 15px rgba(34, 211, 238, 0.2);
+        }
+        .status-pass {
+            background-color: rgba(16, 185, 129, 0.1);
+            border-left: 2px solid #10B981;
+            border-top: 1px solid #253040;
+            border-right: 1px solid #253040;
+            border-bottom: 1px solid #253040;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen font-body-md text-body-md flex flex-col relative wafer-grid">
+<!-- Navbar -->
+<nav class="bg-surface/80 dark:bg-surface/80 backdrop-blur-md font-headline-sm text-headline-sm. Labels: font-label-mono text-label-mono. docked full-width top-0 sticky border-b border-outline-variant/30 flat no shadows flex justify-between items-center w-full px-gutter max-w-container-max mx-auto h-16 z-50">
+<div class="font-headline-sm text-headline-sm font-bold tracking-tighter text-primary dark:text-primary">VIRA-1</div>
+<div class="hidden md:flex space-x-8">
+<a class="text-on-surface-variant dark:text-on-surface-variant hover:text-primary dark:hover:text-primary transition-colors hover:bg-surface-container-high/50 transition-all duration-200 px-4 py-2 rounded-DEFAULT font-label-mono text-label-mono" href="#overview">솔루션 개요</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant hover:text-primary dark:hover:text-primary transition-colors hover:bg-surface-container-high/50 transition-all duration-200 px-4 py-2 rounded-DEFAULT font-label-mono text-label-mono" href="#ai-tech">AI 기술</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant hover:text-primary dark:hover:text-primary transition-colors hover:bg-surface-container-high/50 transition-all duration-200 px-4 py-2 rounded-DEFAULT font-label-mono text-label-mono" href="#metrics">성능 지표</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant hover:text-primary dark:hover:text-primary transition-colors hover:bg-surface-container-high/50 transition-all duration-200 px-4 py-2 rounded-DEFAULT font-label-mono text-label-mono" href="#architecture">아키텍처</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant hover:text-primary dark:hover:text-primary transition-colors hover:bg-surface-container-high/50 transition-all duration-200 px-4 py-2 rounded-DEFAULT font-label-mono text-label-mono" href="#roi">ROI 분석</a>
+</div>
+<button class="bg-primary-container text-black font-label-mono text-label-mono px-6 py-2 hover:bg-primary transition-colors polygon-outline">문의하기</button>
+</nav>
+<!-- Main Content -->
+<main class="flex-grow w-full max-w-container-max mx-auto px-gutter pb-section-gap">
+<!-- Section 1: Hero -->
+<section class="min-h-[80vh] flex flex-col justify-center items-start pt-section-gap">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter items-center w-full">
+<div class="space-y-6 z-10">
+<div class="inline-flex items-center space-x-2 border border-outline-variant px-3 py-1 rounded-DEFAULT text-primary font-label-mono text-label-mono">
+<span class="material-symbols-outlined text-[16px]">precision_manufacturing</span>
+<span class="">SEMICONDUCTOR VISION AI</span>
+</div>
+<h1 class="font-display-lg text-display-lg text-on-surface">사람이 못 보는 15µm 크랙을, 하루 28만 번 같은 기준으로 본다</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl">같은 레티클로 찍혀 픽셀 단위로 동일한 다이들 속에서 예외만 골라냅니다. 검출 결과는 길이·면적 µm로 환산되어 그대로 합부 판정 스펙에 대조됩니다.</p><div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 border-t border-b border-outline-variant/30 py-4">
+<div class="flex flex-col">
+<span class="text-on-surface-variant/50 font-label-mono text-data-sm">미검</span>
+<span class="text-primary font-bold font-data-sm text-body-lg tracking-tighter">≤ 10 DPPM</span>
+</div>
+<div class="flex flex-col">
+<span class="text-on-surface-variant/50 font-label-mono text-data-sm">추론 P95</span>
+<span class="text-primary font-bold font-data-sm text-body-lg tracking-tighter">120ms</span>
+</div>
+<div class="flex flex-col">
+<span class="text-on-surface-variant/50 font-label-mono text-data-sm">택트 대응</span>
+<span class="text-primary font-bold font-data-sm text-body-lg tracking-tighter">250ms</span>
+</div>
+<div class="flex flex-col">
+<span class="text-on-surface-variant/50 font-label-mono text-data-sm">과검율</span>
+<span class="text-primary font-bold font-data-sm text-body-lg tracking-tighter">≤ 1.0%</span>
+</div>
+</div>
+<div class="flex space-x-4 pt-4"><button class="bg-primary-container text-black font-label-mono text-label-mono px-8 py-3 hover:bg-primary transition-colors polygon-outline flex items-center space-x-2">
+<span class="">PoC 문의</span>
+<span class="material-symbols-outlined">arrow_forward</span>
+</button>
+<button class="border border-outline-variant text-on-surface font-label-mono text-label-mono px-8 py-3 hover:bg-surface-container-high/50 transition-colors polygon-outline">
+    기술 리포트 받기
+</button></div>
+</div>
+<div class="relative h-[400px] w-full tech-card polygon-outline flex items-center justify-center overflow-hidden glow-accent">
+<img class="w-full h-full object-cover opacity-60 mix-blend-screen" data-alt="A highly detailed, ultra-realistic macro shot of a 300mm semiconductor wafer under inspection. The scene is illuminated by technical, glowing cyan light panels reflecting off the silicon surface. The aesthetic is industrial, precise, and futuristic, strictly adhering to a dark-mode palette (#0B0F14 base) with luminescent #22D3EE accents. Thin geometric overlays simulate an AI vision targeting system scanning the microchips." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA0jp2WkLge6aXUcgDf4iwrMfxtcwAERvGcpbpI8cOdzlmD5LtjfgPMEG9iVhro2ZrwE9hsyFOdpSejCc5C-oMb59MqbjQnzcHN73Zf62XzK8U1wIBDOZkbykjLLnAj5UuRJZQvc-hGUD39yRm7bAeoslNQ30DpQe6oIjnyAjWZWTkJfS3dVHIak7SqJeTkZkO5kNATD4fKTZWzINlo882jx48tM8DPGJ4H9BgU_zDxOxZrSyI4m9YU6w"/>
+<div class="absolute inset-0 border border-primary/50 m-4 pointer-events-none"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent"></div>
+</div>
+</div>
+</section><section class="pt-section-gap" id="problem">
+<div class="space-y-4 mb-12">
+<div class="inline-flex items-center px-3 py-1 border border-outline-variant rounded-DEFAULT text-primary font-label-mono text-label-mono">
+      PROBLEM
+    </div>
+<h2 class="font-headline-md text-headline-md text-on-surface">현행 공정의 한계</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+<!-- Card 1 -->
+<div class="tech-card p-card-padding polygon-outline flex flex-col space-y-4">
+<div class="font-display-lg text-display-lg text-primary tabular-nums">6.8%</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">박스로는 측정할 수 없다</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">축정렬 박스 안에서 실제 결함이 차지하는 면적은 6.8%. 나머지 93%는 정상 회로 패턴입니다. 박스로는 크랙 길이·치핑 면적을 산출할 수 없어 µm 스펙에 대조할 수 없습니다.</p>
+</div>
+<!-- Card 2 -->
+<div class="tech-card p-card-padding polygon-outline flex flex-col space-y-4">
+<div class="font-display-lg text-display-lg text-primary tabular-nums">4.2%</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">룰 기반 AOI는 과검으로 무너진다</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">임계값 기반 AOI는 회로 패턴의 정상 반사를 결함과 구분하지 못합니다. 과검율 4.2%는 하루 약 11,900개 다이를 재판정 대기열로 밀어넣습니다.</p>
+</div>
+<!-- Card 3 -->
+<div class="tech-card p-card-padding polygon-outline flex flex-col space-y-4">
+<div class="font-display-lg text-display-lg text-primary tabular-nums">240 DPPM</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">그런데 정작 미세 크랙은 놓친다</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">기준을 조여도 폭 15~25µm 선형 크랙은 배경 텍스처와 픽셀 통계가 겹칩니다. 고객 입고 검사에서 여전히 240 DPPM이 검출됩니다.</p>
+</div>
+</div>
+</section>
+<!-- Process Section -->
+<section class="pt-section-gap" id="how-it-works">
+<div class="space-y-4 mb-12">
+<div class="inline-flex items-center px-3 py-1 border border-outline-variant rounded-DEFAULT text-primary font-label-mono text-label-mono">
+      PROCESS
+    </div>
+<h2 class="font-headline-md text-headline-md text-on-surface">작동 방식</h2>
+</div>
+<!-- Flow Diagram -->
+<div class="tech-card p-card-padding polygon-outline mb-12 overflow-x-auto">
+<div class="flex items-center justify-between min-w-[800px] py-8">
+<div class="flex flex-col items-center space-y-2">
+<div class="w-12 h-12 border border-primary/30 flex items-center justify-center text-primary font-label-mono text-data-sm">01</div>
+<span class="text-on-surface font-label-mono text-label-mono">다이 인덱스</span>
+</div>
+<div class="flex-grow h-px bg-outline-variant/30 mx-4 relative">
+<div class="absolute right-0 -top-1 w-2 h-2 border-t border-r border-primary/50 rotate-45"></div>
+</div>
+<div class="flex flex-col items-center space-y-2">
+<div class="w-12 h-12 border border-primary/30 flex items-center justify-center text-primary font-label-mono text-data-sm">02</div>
+<span class="text-on-surface font-label-mono text-label-mono">3채널 촬상</span>
+</div>
+<div class="flex-grow h-px bg-outline-variant/30 mx-4 relative">
+<div class="absolute right-0 -top-1 w-2 h-2 border-t border-r border-primary/50 rotate-45"></div>
+</div>
+<div class="flex flex-col items-center space-y-2">
+<div class="w-12 h-12 border border-primary/30 flex items-center justify-center text-primary font-label-mono text-data-sm">03</div>
+<span class="text-on-surface font-label-mono text-label-mono">전처리</span>
+</div>
+<div class="flex-grow h-px bg-outline-variant/30 mx-4 relative">
+<div class="absolute right-0 -top-1 w-2 h-2 border-t border-r border-primary/50 rotate-45"></div>
+</div>
+<div class="flex flex-col items-center space-y-2 px-6 py-4 border border-primary/50 bg-primary/5">
+<span class="text-primary font-label-mono text-data-sm mb-1">AI CORE</span>
+<span class="text-on-surface font-bold text-center text-label-mono">구조검사 · 표면결함 seg<br/>이상탐지</span>
+</div>
+<div class="flex-grow h-px bg-outline-variant/30 mx-4 relative">
+<div class="absolute right-0 -top-1 w-2 h-2 border-t border-r border-primary/50 rotate-45"></div>
+</div>
+<div class="flex flex-col items-center space-y-2">
+<div class="w-12 h-12 border border-primary/30 flex items-center justify-center text-primary font-label-mono text-data-sm">04</div>
+<span class="text-on-surface font-label-mono text-label-mono">µm 환산</span>
+</div>
+<div class="flex-grow h-px bg-outline-variant/30 mx-4 relative">
+<div class="absolute right-0 -top-1 w-2 h-2 border-t border-r border-primary/50 rotate-45"></div>
+</div>
+<div class="flex flex-col items-center space-y-2">
+<div class="w-12 h-12 border border-primary/30 flex items-center justify-center text-primary font-label-mono text-data-sm">05</div>
+<span class="text-on-surface font-label-mono text-label-mono">3-Bin 분류</span>
+</div>
+</div>
+</div>
+<!-- Performance Table -->
+<div class="tech-card polygon-outline overflow-hidden mb-6">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="border-b border-outline-variant/30 bg-surface-container-low">
+<th class="p-4 font-label-mono text-label-mono text-on-surface-variant">단계</th>
+<th class="p-4 font-label-mono text-label-mono text-on-surface-variant">기법</th>
+<th class="p-4 font-label-mono text-label-mono text-on-surface-variant text-right">지연</th>
+</tr>
+</thead>
+<tbody class="font-body-md text-on-surface tabular-nums">
+<tr class="border-b border-outline-variant/30">
+<td class="p-4">전처리 (정합·정규화)</td>
+<td class="p-4 text-on-surface-variant">OpenCV 룰 기반</td>
+<td class="p-4 text-right">15 ms</td>
+</tr>
+<tr class="border-b border-outline-variant/30">
+<td class="p-4">구조/치수 검사</td>
+<td class="p-4 text-on-surface-variant">템플릿 정합 + 경량 분류기</td>
+<td class="p-4 text-right">20 ms</td>
+</tr>
+<tr class="border-b border-outline-variant/30">
+<td class="p-4">표면 결함 검출</td>
+<td class="p-4 text-on-surface-variant">YOLO26s-seg</td>
+<td class="p-4 text-right">45 ms</td>
+</tr>
+<tr class="border-b border-outline-variant/30">
+<td class="p-4">미학습 이상 탐지</td>
+<td class="p-4 text-on-surface-variant">PatchCore (양품 only)</td>
+<td class="p-4 text-right">30 ms</td>
+</tr>
+<tr class="border-b border-outline-variant/30">
+<td class="p-4">후처리 (µm 환산·스펙 대조)</td>
+<td class="p-4 text-on-surface-variant">룰 기반</td>
+<td class="p-4 text-right">10 ms</td>
+</tr>
+<tr class="bg-primary/10 text-primary font-bold">
+<td class="p-4">합계 P95</td>
+<td class="p-4">-</td>
+<td class="p-4 text-right">120 ms</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p class="text-on-surface-variant font-body-md mb-12">
+    택트 <span class="tabular-nums">250ms</span> 대비 여유율 <span class="tabular-nums">52%</span>. 소터 인덱스 사이클 내에서 완결되어 처리량 손실이 없습니다.
+  </p>
+<!-- Classification Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+<div class="tech-card p-card-padding polygon-outline border-l-4" style="border-left-color: #10B981;">
+<div class="flex justify-between items-start mb-4">
+<span class="font-label-mono text-label-mono px-2 py-1 bg-[#10B981]/10 text-[#10B981]">PASS</span>
+<span class="material-symbols-outlined text-[#10B981]">check_circle</span>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface mb-2">Good Bin</h4>
+<p class="font-body-md text-on-surface-variant">스코어 &lt; 0.35, 전 항목 스펙 내</p>
+</div>
+<div class="tech-card p-card-padding polygon-outline border-l-4" style="border-left-color: #F59E0B;">
+<div class="flex justify-between items-start mb-4">
+<span class="font-label-mono text-label-mono px-2 py-1 bg-[#F59E0B]/10 text-[#F59E0B]">REVIEW</span>
+<span class="material-symbols-outlined text-[#F59E0B]">visibility</span>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface mb-2">재판정 트레이</h4>
+<p class="font-body-md text-on-surface-variant">0.35~0.70 또는 이상탐지 단독</p>
+</div>
+<div class="tech-card p-card-padding polygon-outline border-l-4" style="border-left-color: #EF4444;">
+<div class="flex justify-between items-start mb-4">
+<span class="font-label-mono text-label-mono px-2 py-1 bg-[#EF4444]/10 text-[#EF4444]">REJECT</span>
+<span class="material-symbols-outlined text-[#EF4444]">cancel</span>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface mb-2">Reject Bin</h4>
+<p class="font-body-md text-on-surface-variant">Critical 검출 또는 ≥ 0.70 + 웨이퍼 맵 마킹</p>
+</div>
+</div>
+</section>
+<!-- Deep Dive Section -->
+<section class="pt-section-gap" id="yolo-deep-dive">
+<div class="space-y-4 mb-12">
+<div class="inline-flex items-center px-3 py-1 border border-outline-variant rounded-DEFAULT text-primary font-label-mono text-label-mono">DEEP DIVE</div>
+<h2 class="font-headline-md text-headline-md text-on-surface">WHY YOLO26s-seg?</h2>
+</div>
+<div class="tech-card polygon-outline overflow-hidden">
+<div class="p-card-padding space-y-12">
+<!-- Block 1 -->
+<div>
+<h3 class="font-headline-sm text-primary mb-4">왜 Seg인가 (실측)</h3>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+<div class="space-y-6">
+<div class="tech-card bg-surface-container-lowest/50 p-4 border-primary/30 overflow-x-auto">
+<table class="w-full text-data-sm tabular-nums min-w-[300px]">
+<thead class="text-on-surface-variant border-b border-outline-variant/30">
+<tr>
+<th class="pb-2 text-left">표현 방식</th>
+<th class="pb-2 text-right">면적</th>
+<th class="pb-2 text-right">결함 채움비</th>
+<th class="pb-2 text-center">스펙 부합</th>
+</tr>
+</thead>
+<tbody class="text-on-surface">
+<tr class="border-b border-outline-variant/10">
+<td class="py-2">축정렬 박스 (Detect)</td>
+<td class="py-2 text-right">263,529 px²</td>
+<td class="py-2 text-right text-[#EF4444]">6.8%</td>
+<td class="py-2 text-center">❌</td>
+</tr>
+<tr class="border-b border-outline-variant/10">
+<td class="py-2">회전 박스 (OBB)</td>
+<td class="py-2 text-right">45,288 px²</td>
+<td class="py-2 text-right text-[#F59E0B]">39.6%</td>
+<td class="py-2 text-center">△</td>
+</tr>
+<tr>
+<td class="py-2 text-primary">폴리곤 (Seg)</td>
+<td class="py-2 text-right text-primary">17,918 px²</td>
+<td class="py-2 text-right text-primary">100%</td>
+<td class="py-2 text-center">✅</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="space-y-4">
+<ul class="list-disc pl-5 space-y-2 text-body-md text-on-surface-variant">
+<li>박스 회귀 손실의 93%가 정상 회로 패턴을 맞추는 데 소모됩니다.</li>
+<li>모델이 "큰 박스 하나"를 학습해 사실상 분류기로 퇴화합니다.</li>
+<li>크랙 길이·치핑 면적을 잴 수 없어 합부 판정에 못 씁니다. "크랙 150µm 이상 Critical" 스펙을 적용할 방법 자체가 없습니다.</li>
+<li>OBB도 면적을 2.5배 과대 산출합니다. µm 단위 스펙 공정에서는 수용 불가.</li>
+</ul>
+<div class="flex items-center space-x-4"><div class="flex-grow h-2 bg-outline-variant/30 rounded-full overflow-hidden"><div class="h-full bg-primary w-[100%] glow-accent"></div></div><span class="font-label-mono text-primary">100% Fill Ratio</span></div></div>
+</div>
+<div class="relative aspect-video bg-surface-container-lowest border border-outline-variant/30 flex items-center justify-center overflow-hidden"><div class="absolute inset-0 opacity-20 wafer-grid"></div><div class="z-10 text-center"><span class="material-symbols-outlined text-primary text-4xl mb-2">biotech</span><p class="font-label-mono text-data-sm text-on-surface-variant">[OVERLAY_COMPARISON_VISUALIZATION]</p></div></div>
+</div>
+</div>
+<!-- Block 2 -->
+<div class="pt-8 border-t border-outline-variant/30">
+<h3 class="font-headline-sm text-primary mb-4">왜 YOLO26인가</h3>
+<div class="tech-card bg-surface-container-lowest/50 p-4 border-primary/30 overflow-x-auto mb-6">
+<table class="w-full text-data-sm min-w-[500px]">
+<thead class="text-on-surface-variant border-b border-outline-variant/30">
+<tr>
+<th class="pb-2 text-left">모델</th>
+<th class="pb-2 text-left">특징 및 한계</th>
+<th class="pb-2 text-center">평가</th>
+</tr>
+</thead>
+<tbody class="text-on-surface">
+<tr class="border-b border-outline-variant/10">
+<td class="py-2 font-bold">YOLOv8-seg</td>
+<td class="py-2 text-on-surface-variant">레퍼런스는 최고. 그러나 NMS 후처리 필수 → 검출 수에 따라 지연 변동</td>
+<td class="py-2 text-center text-[#EF4444]">❌</td>
+</tr>
+<tr class="border-b border-outline-variant/10">
+<td class="py-2 font-bold">YOLO11-seg</td>
+<td class="py-2 text-on-surface-variant">파라미터 효율 개선. 안전한 선택이라 폴백 1순위. 다만 NMS 의존·미세객체 손실 부재</td>
+<td class="py-2 text-center text-[#F59E0B]">△ 폴백</td>
+</tr>
+<tr class="border-b border-outline-variant/10">
+<td class="py-2 font-bold">YOLOv12-seg</td>
+<td class="py-2 text-on-surface-variant">정확도 이점 보고. 그러나 TensorRT INT8 변환의 현장 실적이 얕아 양산 배포 리스크</td>
+<td class="py-2 text-center text-[#EF4444]">❌</td>
+</tr>
+<tr>
+<td class="py-2 font-bold text-primary">YOLO26s-seg</td>
+<td class="py-2 text-primary">① NMS-free 종단간 추론 ② DFL 제거 ③ 미세·소형 객체 대응 손실</td>
+<td class="py-2 text-center">✅</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="bg-primary/5 border-l-4 border-primary p-4 mb-4">
+<p class="font-body-md text-on-surface font-bold">강조 문구: 결정타는 정확도가 아니라 "지연 예측 가능성"입니다.</p>
+</div>
+<p class="font-body-md text-on-surface-variant">설명: NMS-free 구조는 최악의 케이스(Worst-case latency)를 알고리즘 레벨에서 제거합니다.</p>
+</div>
+<!-- Block 3 -->
+<div class="pt-8 border-t border-outline-variant/30">
+<h3 class="font-headline-sm text-primary mb-4">s-size &amp; mask_ratio</h3>
+<div class="tech-card bg-surface-container-lowest/50 p-4 border-primary/30 overflow-x-auto mb-6">
+<table class="w-full text-data-sm min-w-[400px]">
+<thead class="text-on-surface-variant border-b border-outline-variant/30">
+<tr>
+<th class="pb-2 text-left">크기</th>
+<th class="pb-2 text-left">판단</th>
+<th class="pb-2 text-center">결과</th>
+</tr>
+</thead>
+<tbody class="text-on-surface">
+<tr class="border-b border-outline-variant/10">
+<td class="py-2 font-bold">n-seg</td>
+<td class="py-2 text-on-surface-variant">3~5px 크랙 표현력 부족 (베이스라인 전용)</td>
+<td class="py-2 text-center">-</td>
+</tr>
+<tr class="border-b border-outline-variant/10">
+<td class="py-2 font-bold text-primary">s-seg</td>
+<td class="py-2 text-primary">학습 데이터 2,000~4,000장에서 용량과 과적합의 균형점, 45ms 예산 내 여유</td>
+<td class="py-2 text-center">✅</td>
+</tr>
+<tr>
+<td class="py-2 font-bold">m-seg</td>
+<td class="py-2 text-on-surface-variant">4,000장 상단 + copy_paste 조합이면 1회 시도 가치</td>
+<td class="py-2 text-center text-[#F59E0B]">조건부</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="bg-surface-container/50 border border-outline-variant p-4">
+<p class="font-body-md text-on-surface-variant"><strong class="text-primary">숨은 결정타 — mask_ratio:</strong> mask_ratio=1로 원본 해상도 학습 시 3~5px 크랙도 손실 없이 학습됩니다.</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Performance Section -->
+<section class="pt-section-gap" id="performance"><div class="space-y-4 mb-12"><div class="inline-flex items-center px-3 py-1 border border-outline-variant rounded-DEFAULT text-primary font-label-mono text-label-mono">PERFORMANCE</div><h2 class="font-headline-md text-headline-md text-on-surface">성능 지표</h2></div><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter mb-12"><div class="tech-card p-4 polygon-outline flex flex-col space-y-2"><span class="text-on-surface-variant/50 font-label-mono text-data-sm">Critical 결함 검출률 (Recall)</span><span class="text-primary font-display-lg text-headline-md tabular-nums">≥ 99.5%</span></div><div class="tech-card p-4 polygon-outline flex flex-col space-y-2"><span class="text-on-surface-variant/50 font-label-mono text-data-sm">미검출 유출률</span><span class="text-primary font-display-lg text-headline-md tabular-nums">≤ 10 DPPM</span></div><div class="tech-card p-4 polygon-outline flex flex-col space-y-2"><span class="text-on-surface-variant/50 font-label-mono text-data-sm">과검율</span><span class="text-primary font-display-lg text-headline-md tabular-nums">≤ 1.0%</span></div><div class="tech-card p-4 polygon-outline flex flex-col space-y-2"><span class="text-on-surface-variant/50 font-label-mono text-data-sm">정밀도</span><span class="text-primary font-display-lg text-headline-md tabular-nums">≥ 90%</span></div><div class="tech-card p-4 polygon-outline flex flex-col space-y-2"><span class="text-on-surface-variant/50 font-label-mono text-data-sm">추론 지연</span><span class="text-primary font-display-lg text-headline-md tabular-nums">P95 ≤ 120ms</span><span class="text-on-surface-variant/50 font-label-mono text-data-sm">P99 ≤ 200ms</span></div><div class="tech-card p-4 polygon-outline flex flex-col space-y-2"><span class="text-on-surface-variant/50 font-label-mono text-data-sm">처리량</span><span class="text-primary font-display-lg text-headline-md tabular-nums">≥ 14,400 UPH</span></div><div class="tech-card p-4 polygon-outline flex flex-col space-y-2"><span class="text-on-surface-variant/50 font-label-mono text-data-sm">설비 가용률</span><span class="text-primary font-display-lg text-headline-md tabular-nums">≥ 99.0%</span></div><div class="tech-card p-4 polygon-outline flex flex-col space-y-2"><span class="text-on-surface-variant/50 font-label-mono text-data-sm">웨이퍼 맵 정합성 오류</span><span class="text-primary font-display-lg text-headline-md tabular-nums">0건</span></div></div><div class="tech-card p-card-padding polygon-outline bg-primary/5 border-primary/30 space-y-6"><div class="space-y-2"><h3 class="font-headline-sm text-headline-sm text-primary">우리는 mAP로 홍보하지 않습니다.</h3><p class="font-body-md text-on-surface-variant">세장형 마스크에서 mAP50-95는 폭 1~2px 차이로 크게 흔들리지만, 그 차이는 µm 스펙 대조 결과에 아무 영향이 없습니다. VIRA-1은 다이 단위 미검율 · 다이당 오검 개수 · 마스크 면적 오차로 성능을 보고합니다.</p></div><div class="pt-4 border-t border-outline-variant/30 flex items-start space-x-3"><span class="material-symbols-outlined text-primary">info</span><p class="font-body-md text-on-surface-variant/80 italic">그리고 미검 0%는 통계적으로 검증할 수 없습니다. 검증셋 결함이 수백 개면 미검 0건이어도 95% 신뢰 상한은 수 % 수준입니다. 우리는 0%를 약속하지 않고, 측정 가능한 상한과 사람 재검 경로를 함께 제공합니다.</p></div></div></section>
+<!-- Architecture Section -->
+<section class="pt-section-gap" id="architecture"><div class="space-y-4 mb-12"><div class="inline-flex items-center px-3 py-1 border border-outline-variant rounded-DEFAULT text-primary font-label-mono text-label-mono">ARCHITECTURE</div><h2 class="font-headline-md text-headline-md text-on-surface">아키텍처</h2></div><div class="grid grid-cols-1 md:grid-cols-2 gap-gutter"><div class="space-y-6"><h3 class="font-headline-sm text-primary flex items-center space-x-2"><span class="material-symbols-outlined">settings_input_component</span><span>광학 · 하드웨어</span></h3><div class="tech-card polygon-outline overflow-hidden"><table class="w-full text-left border-collapse"><thead class="bg-surface-container-low border-b border-outline-variant/30"><tr class="text-label-mono text-on-surface-variant"><th class="p-4">구성 요소</th><th class="p-4">사양 및 선정 사유</th></tr></thead><tbody class="text-body-md text-on-surface tabular-nums"><tr class="border-b border-outline-variant/10"><td class="p-4 font-bold">카메라</td><td class="p-4 text-on-surface-variant">5MP 모노크롬 글로벌 셔터 ×3 (반도체 표면은 색이 아니라 산란 강도가 신호. 베이어 보간이 없어 실효 해상도 우위)</td></tr><tr class="border-b border-outline-variant/10"><td class="p-4 font-bold">렌즈</td><td class="p-4 text-on-surface-variant">텔레센트릭 + 편광 필터 (작동거리가 변해도 배율이 안 변해야 µm 치수 측정이 성립)</td></tr><tr class="border-b border-outline-variant/10"><td class="p-4 font-bold">분해능</td><td class="p-4 text-on-surface-variant">5.0 µm/px (다이 4.0×3.1mm → 800×620px) (최소 검출 결함 15µm = 3px 확보)</td></tr><tr class="border-b border-outline-variant/10"><td class="p-4 font-bold">조명</td><td class="p-4 text-on-surface-variant">동축 + 로우앵글 다크필드 + 스트로브 (크랙은 다크필드 저각 입사에서 산란광으로 밝게 나타나 SNR이 급격히 개선)</td></tr><tr class="border-b border-outline-variant/10"><td class="p-4 font-bold">엣지 추론</td><td class="p-4 text-on-surface-variant">산업용 fanless IPC + NVIDIA GPU, TensorRT INT8 (온프레미스 실시간, 네트워크 단절 리스크 제거)</td></tr><tr><td class="p-4 font-bold">분류</td><td class="p-4 text-on-surface-variant">다이 소터 픽업 헤드 3-Bin (별도 배출 기구 없이 기존 소터 기능 활용 → 개조 최소화)</td></tr></tbody></table></div></div><div class="space-y-6"><h3 class="font-headline-sm text-primary flex items-center space-x-2"><span class="material-symbols-outlined">terminal</span><span>통신 · 소프트웨어</span></h3><div class="tech-card polygon-outline overflow-hidden"><table class="w-full text-left border-collapse"><thead class="bg-surface-container-low border-b border-outline-variant/30"><tr class="text-label-mono text-on-surface-variant"><th class="p-4">구성 요소</th><th class="p-4">사양 및 선정 사유</th></tr></thead><tbody class="text-body-md text-on-surface tabular-nums"><tr class="border-b border-outline-variant/10"><td class="p-4 font-bold">장비↔호스트</td><td class="p-4 text-on-surface-variant">SECS/GEM (SEMI E5·E30·E37) (팹의 사실상 유일한 표준, 게이트웨이 불필요)</td></tr><tr class="border-b border-outline-variant/10"><td class="p-4 font-bold">판정 전달</td><td class="p-4 text-on-surface-variant">SEMI E142 웨이퍼 맵 (잉크리스 표준, 후속 다이 본더가 그대로 소비)</td></tr><tr class="border-b border-outline-variant/10"><td class="p-4 font-bold">학습</td><td class="p-4 text-on-surface-variant">클라우드 GPU (A100/L40S) + 온프레미스 병행 (웨이퍼·로트 ID 해시 익명화, 리전 국내 고정, 학습 후 30일 삭제)</td></tr><tr class="border-b border-outline-variant/10"><td class="p-4 font-bold">데이터</td><td class="p-4 text-on-surface-variant">PostgreSQL + TimescaleDB + 오브젝트 스토리지 (REJECT/REVIEW 2년, PASS 30일 (일 1.2TB라 전량 보존 불가))</td></tr><tr><td class="p-4 font-bold">MLOps</td><td class="p-4 text-on-surface-variant">Label Studio · MLflow · DVC · ONNX→TensorRT (모델 버전–판정 결과 매핑 추적은 IATF 16949 요구사항)</td></tr></tbody></table></div></div></div><div class="mt-12 flex flex-wrap gap-4 justify-center border-t border-outline-variant/30 pt-8"><span class="px-3 py-1 bg-surface-container-low border border-outline-variant/30 rounded-DEFAULT text-on-surface-variant font-label-mono text-data-sm">SEMI E5/E30/E37</span><span class="px-3 py-1 bg-surface-container-low border border-outline-variant/30 rounded-DEFAULT text-on-surface-variant font-label-mono text-data-sm">SEMI E142</span><span class="px-3 py-1 bg-surface-container-low border border-outline-variant/30 rounded-DEFAULT text-on-surface-variant font-label-mono text-data-sm">SEMI E10</span><span class="px-3 py-1 bg-surface-container-low border border-outline-variant/30 rounded-DEFAULT text-on-surface-variant font-label-mono text-data-sm">ISO 14644-1 Class 6</span><span class="px-3 py-1 bg-surface-container-low border border-outline-variant/30 rounded-DEFAULT text-on-surface-variant font-label-mono text-data-sm">ANSI/ESD S20.20</span><span class="px-3 py-1 bg-surface-container-low border border-outline-variant/30 rounded-DEFAULT text-on-surface-variant font-label-mono text-data-sm">IATF 16949</span><span class="px-3 py-1 bg-surface-container-low border border-outline-variant/30 rounded-DEFAULT text-on-surface-variant font-label-mono text-data-sm">AEC-Q100 대응</span></div></section>
+<!-- Roadmap & ROI Section -->
+<section class="pt-section-gap" id="roadmap">
+<div class="space-y-4 mb-12">
+<div class="inline-flex items-center px-3 py-1 border border-outline-variant rounded-DEFAULT text-primary font-label-mono text-label-mono">ROADMAP &amp; ROI</div>
+<h2 class="font-headline-md text-headline-md text-on-surface">도입 로드맵</h2>
+</div>
+<div class="tech-card p-card-padding polygon-outline mb-12 overflow-x-auto">
+<div class="flex items-start justify-between min-w-[900px] py-4">
+<!-- Phase 0 -->
+<div class="flex flex-col flex-1 px-4 relative">
+<div class="font-label-mono text-primary text-data-sm mb-2">Phase 0</div>
+<div class="font-headline-sm text-on-surface mb-2">타당성 (5주)</div>
+<p class="font-body-md text-on-surface-variant mb-4 h-12">광학·조명 설계, 라벨 감사, 2,000장 PoC</p>
+<div class="bg-surface-container-low border border-outline-variant/30 p-2 text-data-sm text-on-surface-variant font-label-mono rounded-DEFAULT">Gate: 검출률 ≥ 95%</div>
+<div class="absolute -right-4 top-1/2 w-8 border-t border-dashed border-outline-variant/50"></div>
+</div>
+<!-- Phase 1 -->
+<div class="flex flex-col flex-1 px-4 relative">
+<div class="font-label-mono text-primary text-data-sm mb-2">Phase 1</div>
+<div class="font-headline-sm text-on-surface mb-2">구축 (12주)</div>
+<p class="font-body-md text-on-surface-variant mb-4 h-12">소터 개조, SECS/GEM 연동, 모델 학습</p>
+<div class="bg-surface-container-low border border-outline-variant/30 p-2 text-data-sm text-on-surface-variant font-label-mono rounded-DEFAULT">Gate: 병행 운영 개시</div>
+<div class="absolute -right-4 top-1/2 w-8 border-t border-dashed border-outline-variant/50"></div>
+</div>
+<!-- Phase 2 -->
+<div class="flex flex-col flex-1 px-4 relative">
+<div class="font-label-mono text-primary text-data-sm mb-2">Phase 2</div>
+<div class="font-headline-sm text-on-surface mb-2">병행 검증 (8주)</div>
+<p class="font-body-md text-on-surface-variant mb-4 h-12">AI 판정만 기록, 빈 분류 미실행 → 검증 후 전환</p>
+<div class="bg-surface-container-low border border-outline-variant/30 p-2 text-data-sm text-on-surface-variant font-label-mono rounded-DEFAULT">Gate: KPI 전 항목 충족</div>
+<div class="absolute -right-4 top-1/2 w-8 border-t border-dashed border-outline-variant/50"></div>
+</div>
+<!-- Phase 3 -->
+<div class="flex flex-col flex-1 px-4">
+<div class="font-label-mono text-primary text-data-sm mb-2">Phase 3</div>
+<div class="font-headline-sm text-on-surface mb-2">양산 확산 (8주)</div>
+<p class="font-body-md text-on-surface-variant mb-4 h-12">인력 재배치, 4개 품종 확장, 2호기 복제</p>
+<div class="bg-surface-container-low border border-outline-variant/30 p-2 text-data-sm text-on-surface-variant font-label-mono rounded-DEFAULT">Gate: 투자 회수 궤도</div>
+</div>
+</div>
+<div class="mt-8 flex items-start space-x-3 bg-surface-container-low/50 p-4 border border-outline-variant/30 rounded-DEFAULT">
+<span class="material-symbols-outlined text-primary">lock</span>
+<p class="font-body-md text-on-surface-variant text-sm">Phase 2에서 Critical 검출률 99.5% + 과검율 1.0%를 충족하기 전에는 자동 빈 분류를 활성화하지 않습니다.</p>
+</div>
+</div>
+<div class="space-y-4 mb-8">
+<h2 class="font-headline-md text-headline-md text-on-surface">ROI 분석</h2>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-gutter mb-8">
+<div class="tech-card p-6 polygon-outline flex flex-col items-center justify-center text-center space-y-2">
+<span class="text-on-surface-variant font-label-mono text-data-sm">CAPEX</span>
+<span class="text-primary font-display-lg text-headline-md tabular-nums">2.5억원</span>
+</div>
+<div class="tech-card p-6 polygon-outline flex flex-col items-center justify-center text-center space-y-2">
+<span class="text-on-surface-variant font-label-mono text-data-sm">월 순 절감</span>
+<span class="text-primary font-display-lg text-headline-md tabular-nums">5,975만원</span>
+</div>
+<div class="tech-card p-6 polygon-outline flex flex-col items-center justify-center text-center space-y-2">
+<span class="text-on-surface-variant font-label-mono text-data-sm">연간 ROI</span>
+<span class="text-primary font-display-lg text-headline-md tabular-nums">약 287%</span>
+</div>
+<div class="tech-card p-6 polygon-outline flex flex-col items-center justify-center text-center space-y-2">
+<span class="text-on-surface-variant font-label-mono text-data-sm">회수기간</span>
+<span class="text-primary font-display-lg text-headline-md tabular-nums">약 4.2개월</span>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter mb-12">
+<div class="tech-card p-card-padding polygon-outline border border-primary/50 bg-primary/5">
+<h3 class="font-headline-sm text-primary mb-3">민감도 분석</h3>
+<p class="font-body-md text-on-surface">절감 효과가 50%만 실현되고 운영비가 30% 초과하는 최악 시나리오에서도 회수 11.7개월로 사내 기준(18개월)을 충족합니다.</p>
+</div>
+<div class="tech-card p-card-padding polygon-outline">
+<h3 class="font-headline-sm text-on-surface mb-3">주요 절감 요인</h3>
+<ul class="list-disc pl-5 space-y-2 font-body-md text-on-surface-variant">
+<li>VRS 재판정 인건비 (9명 → 4명)</li>
+<li>고객 클레임 감소 (월 1.8건 → 0.2건)</li>
+<li>과검 폐기 감소 (4.2% → 1.0%)</li>
+<li>후공정 손실 감소 (240 DPPM → 10 DPPM)</li>
+</ul>
+</div>
+</div>
+</section>
+<!-- CTA Section -->
+<section class="pt-section-gap border-t border-outline-variant/30" id="cta">
+<div class="max-w-3xl mx-auto text-center space-y-6 mb-12">
+<h2 class="font-headline-md text-headline-md text-on-surface">먼저 5주짜리 PoC로 검증하세요</h2>
+<p class="font-body-lg text-on-surface-variant">광학 설계와 2,000장 규모 PoC로 검출률 95% 달성 여부를 먼저 확인합니다. 전체 투자의 약 5% 단계에서 최대 리스크를 차단하는 구조입니다.</p>
+<div class="flex justify-center space-x-4 pt-4">
+<button class="bg-primary-container text-black font-label-mono text-label-mono px-8 py-3 hover:bg-primary transition-colors polygon-outline">PoC 문의하기</button>
+<button class="border border-outline-variant text-on-surface font-label-mono text-label-mono px-8 py-3 hover:bg-surface-container-high/50 transition-colors polygon-outline">기술 리포트 다운로드</button>
+</div>
+</div>
+<div class="tech-card p-card-padding polygon-outline max-w-2xl mx-auto">
+<form class="space-y-6">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="space-y-2">
+<label class="block font-label-mono text-data-sm text-on-surface-variant">회사 / 담당자명</label>
+<input class="w-full bg-surface border border-outline-variant rounded-DEFAULT px-4 py-2 text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors" type="text"/>
+</div>
+<div class="space-y-2">
+<label class="block font-label-mono text-data-sm text-on-surface-variant">연락처 (Email / Phone)</label>
+<input class="w-full bg-surface border border-outline-variant rounded-DEFAULT px-4 py-2 text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors" type="text"/>
+</div>
+<div class="space-y-2">
+<label class="block font-label-mono text-data-sm text-on-surface-variant">웨이퍼 사이즈 / 다이 크기</label>
+<input class="w-full bg-surface border border-outline-variant rounded-DEFAULT px-4 py-2 text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors" placeholder="ex) 300mm / 4x3mm" type="text"/>
+</div>
+<div class="space-y-2">
+<label class="block font-label-mono text-data-sm text-on-surface-variant">최소 검출 목표 결함 폭 (µm)</label>
+<input class="w-full bg-surface border border-outline-variant rounded-DEFAULT px-4 py-2 text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors" placeholder="ex) 15µm" type="text"/>
+</div>
+<div class="space-y-2">
+<label class="block font-label-mono text-data-sm text-on-surface-variant">현재 다이 소터 기종</label>
+<input class="w-full bg-surface border border-outline-variant rounded-DEFAULT px-4 py-2 text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors" type="text"/>
+</div>
+<div class="space-y-2">
+<label class="block font-label-mono text-data-sm text-on-surface-variant">AEC-Q100 대응 필요 여부</label>
+<select class="w-full bg-surface border border-outline-variant rounded-DEFAULT px-4 py-2 text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors">
+<option>필요함</option>
+<option>필요 없음</option>
+<option>확인 중</option>
+</select>
+</div>
+</div>
+<button class="w-full bg-surface-container-high hover:bg-surface-bright border border-outline-variant text-primary font-label-mono text-label-mono py-3 polygon-outline transition-colors mt-6" type="submit">문의 내용 보내기</button>
+</form>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-surface-container-lowest dark:bg-surface-container-lowest text-secondary dark:text-secondary Body: font-body-md text-body-md. Labels: font-label-mono text-label-mono. font-headline-sm text-headline-sm text-on-surface full-width border-t border-outline-variant flat no shadows max-w-container-max mx-auto px-gutter py-section-gap flex flex-col md:flex-row justify-between items-center z-50 relative mt-section-gap">
+<div class="font-headline-sm text-headline-sm text-on-surface font-bold tracking-tighter mb-4 md:mb-0">VIRA-1</div>
+<div class="font-label-mono text-label-mono text-on-surface-variant flex flex-wrap justify-center md:justify-end space-x-6">
+<a class="hover:text-primary transition-colors" href="#">개인정보처리방침</a>
+<a class="hover:text-primary transition-colors" href="#">이용약관</a>
+<a class="hover:text-primary transition-colors" href="#">SEMI 표준 준수</a>
+<a class="hover:text-primary transition-colors" href="#">기술 지원</a>
+</div>
+<div class="w-full text-center md:text-right mt-6 font-data-sm text-data-sm text-on-surface-variant/50">
+            © 2024 VIRA-1 Semiconductor Vision AI. All rights reserved.
+        </div>
+</footer>
+</body></html>
